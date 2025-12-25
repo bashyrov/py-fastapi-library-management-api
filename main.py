@@ -26,7 +26,7 @@ def root() -> dict:
 @app.get("/authors/")
 def read_authors_list(db: Session = Depends(get_db),
                       skip: int = 0,
-                      limit: int = 0
+                      limit: int = 100
                       ) -> list[schemas.AuthorRead]:
     return crud.get_authors_list(
         db=db,
@@ -60,7 +60,7 @@ def retrieve_author(author_id: int,
 @app.get("/books/")
 def read_books_list(db: Session = Depends(get_db),
                     author_id: int | None = None,
-                    skip: int = 0, limit: int = 0
+                    skip: int = 0, limit: int = 100
                     ) -> list[schemas.BookRead]:
     return crud.get_books_list(
         db=db,
