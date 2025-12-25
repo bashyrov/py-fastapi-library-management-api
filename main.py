@@ -1,12 +1,13 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 import crud
+import models
 import schemas
-from database import SessionLocal
+from database import SessionLocal, engine
 
 app = FastAPI()
-
+models.Base.metadata.create_all(bind=engine)
 
 def get_db() -> Session:
     db = SessionLocal()
@@ -45,10 +46,15 @@ def create_author(author: schemas.AuthorCreate,
 def retrieve_author(author_id: int,
                     db: Session = Depends(get_db)
                     ):
-    return crud.get_author_by_id(
+    db_author = crud.get_author_by_id(
         db=db,
         author_id=author_id
     )
+
+    if db_author is None:
+        raise HTTPException(status_code=404, detail="Author not found")
+
+    return db_author
 
 
 @app.get("/books/")
@@ -74,11 +80,18 @@ def create_book(book: schemas.BookCreate,
     )
 
 
-@app.get("/books/{books_id}", response_model=schemas.BookRead)
+@app.get("/books/{book_id}", response_model=schemas.BookRead)
 def retrieve_book(book_id: int,
                   db: Session = Depends(get_db)
                   ):
-    return crud.get_book_by_id(
+    db_book = crud.get_book_by_id(
         db=db,
         book_id=book_id
     )
+    if db_book is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Book not found"
+        )
+
+    return db_book
